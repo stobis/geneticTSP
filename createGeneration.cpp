@@ -6,7 +6,7 @@ Chromosome *createGeneration( CUdeviceptr oldGen, CUdeviceptr newGen )
 {
   thrust::sort( (int *) oldGen, ( ( int *oldGen ) ) + generationSize );  // nie wiem czy dziala, znalazlem na necie;
 
-  void *breedingArgs[] = {&oldGen, &newGen, &generationSize, &V, &devStates};
+  void *breedingArgs[] = {&oldGen, &newGen, &generationSize, &graphSize, &devStates};
 
   int threadsPerBlock = 1024;
   int blocksPerGrid = ( generationSize + threadsPerBlock - 1 ) / threadsPerBlock;
