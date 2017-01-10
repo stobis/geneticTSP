@@ -4,7 +4,7 @@
 
 Chromosome *createGeneration( CUdeviceptr oldGen, CUdeviceptr newGen )
 {
-  thrust::sort( (int *) oldGen, ( ( int *oldGen ) ) + generationSize );  // nie wiem czy dziala, znalazlem na necie;
+  thrust::sort( (Chromosome *) oldGen, ( ( Chromosome * oldGen ) ) + generationSize );  // nie wiem czy dziala, znalazlem na necie;
 
   void *breedingArgs[] = {&oldGen, &newGen, &generationSize, &graphSize, &devStates};
 

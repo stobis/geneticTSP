@@ -5,17 +5,7 @@
 #include <algorithm>
 #include <cstdlib>
 
-/*
-
- cross(Chromosome *a, Chromosome *b, Chromosome *child, int V);
-
-*Chromosome createGeneration(C
-*/
-struct Chromosome;
-int graphSize, generationSize, generationLimit;
-Chromosome* oldGeneration;
-Chromosome* newGeneration;
-CUfunction cross;
+#include "decls.hpp"
 
 void createFirstGeneration(){
 	for(int i = 0; i < generationSize; ++i){
