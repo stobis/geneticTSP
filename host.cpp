@@ -7,12 +7,8 @@
 
 #include "decls.hpp"
 
-void createFirstGeneration(){
-	for(int i = 0; i < generationSize; ++i){
-		oldGeneration[i] = new Chromosome(); 
-	}
-}
-
+void createFirstGeneration(int *paths);
+void checkRes(char *message, CUresult res);
 
 int main(int argv, char* argc[]){
 	srand (time(NULL));
@@ -35,21 +31,27 @@ int main(int argv, char* argc[]){
         exit(1);
     }
 
-    //Tworzy modul z pliku binarnego "radixsort.ptx"
-    CUmodule cuModule = (CUmodule)0;
-    res = cuModuleLoad(&cuModule, "proj.ptx");
-    if (res != CUDA_SUCCESS) {
-        printf("cannot load module: %d\n", res);  
-        exit(1); 
-    }
+    CUmodule breedModule = (CUmodule)0;
+    res = cuModuleLoad(&breedModule, "breed.ptx");
+    checkRes("cannot load breed module", res);  
 
-    //Pobiera handler kernela z modulu
-    
-    res = cuModuleGetFunction(&breed, cuModule, "breed");
-    if (res != CUDA_SUCCESS){
-        printf("cannot acquire kernel handle suma\n");
-        exit(1);
-    }
+    res = cuModuleGetFunction(&breed, breedModule, "breed");
+    checkRes("cannot acquire kernel handle suma", res);
+
+
+    CUmodule initModule = (CUmodule)0;
+    res = cuModuleLoad(&initModule, "initializeChromosomes.ptx");
+    checkRes("cannot load init module", res);    
+
+    res = cuModuleGetFunction(&initializeChromosomes, initModule, "initializeChromosomes");
+    checkRes("cannot acquire init module", res);
+
+    CUmodule declsModule = (CUmodule)0;
+    res = cuModuleLoad(&declsModule, "cuDecls.ptx");
+    checkRes("cannot load decls module", res);
+
+    res = cuModuleGetFunction(&declsFunc, declsModule, "initializeVariables");
+    checkRes("cannot acquire decls module", res);
 
     scanf("%d", &graphSize, &generationLimit);
     generationSize = 2*graphSize;
@@ -63,50 +65,42 @@ int main(int argv, char* argc[]){
     	graph[i] = new Point(a, b);
     }
 
-    CUdeviceptr devGraph, devOldGeneration, devNewgeneration;
-    
     res = cuMemAlloc(&devGraph, sizeof(Point)*graphSize);
-    if ( res != CUDA_SUCCESS){
-        printf("cannot allocate memory devGraph\n");
-    }
+    checkRes("cannot allocate memory devGraph", res);
 
     cuMemHostRegister(graph, sizeof(Point)*graphSize, 0);
     res = cuMemcpyHtoD(devGraph, graph, sizeof(Point)*graphSize);
-    if(res != CUDA_SUCCESS){
-        printf("cannot copy the table graph");
-    }
+    checkRes("cannot copy the table graph", res);
    
-    res = cuMemAlloc(&devOldGeneration, sizeof(Chromosome)*generationSize); 
-    if(res != CUDA_SUCCESS){
-        printf("cannot alloc outAdev\n");
-    }
-
-    res = cuMemHostRegister(oldGeneration, sizeof(Chromosome)*generationSize, 0);
-    if(res != CUDA_SUCCESS){
-        printf("cannot register outA\n");
-    }
-
-    res = cuMemHostRegister(newGeneration, sizeof(Chromosome)*generationSize, 0);
-    if(res != CUDA_SUCCESS){
-        printf("cannot register outA\n");
-    }
-
     res = cuMemAlloc(&devOldgeneration, sizeof(Chromosome)*generationSize);
-    if(res != CUDA_SUCCESS){
-        printf("cannot allocate Asuma\n");
-        exit(1);
-    }
+    checkRes("cannot allocate Asuma", res);
 
     res = cuMemAlloc(&devNewgeneration, sizeof(Chromosome)*generationSize);
-    if(res != CUDA_SUCCESS){
-        printf("cannot allocate Asuma\n");
-        exit(1);
-    }
+    checkRes("cannot allocate Asuma", res);
 
-    res = cuMemcpyHtoD(devOldgeneration, oldGeneration, sizeof(Chromosome)*generationSize);
-    if(res != CUDA_SUCCESS){
-        printf("cannot copy the table graph");
-    }
+    res = cuMemAlloc(&devOldPaths, sizeof(int)*generationSize*graphSize);
+    checkRes("cannot allocate OldPaths", res);
+
+    res = cuMemAlloc(&devNewPaths, sizeof(int)*generationSize*graphSize);
+    checkRes("cannot allocate NewPaths", res);
+
+    oldPaths = new int[generationSize*graphSize];
+    newPaths = new int[generationSize*graphSize];
+
+    createGeneration(oldPaths);
+    createGeneration(newPaths);
+    
+    res = cuLaunchKernel( declsFunc, 1, 1, 1, 1, 1, 1, 0, 0, 
+            (void*){ &devGraph, &devOldgeneration, &devNewgeneration, &devOldPaths, &devNewPaths, &graphSize, &generationSize }, 0 );
+
+
+    
+    int threadsPerBlock = 1024;
+    int blocksPerGrid = ( generationSize + threadsPerBlock - 1 ) / threadsPerBlock;
+
+    void *initArgs[] = { &devOldgeneration, &devOldPaths };
+    res = cuLaunchKernel( initializeChromosomes, blocksPerGrid, 1, 1, threadsPerBlock, 1, 1, 0, 0, initArgs, 0 );
+    
 
     Chromosome theBest;
     for(int i = 0; i < generationLimit; ++i){
@@ -114,4 +108,25 @@ int main(int argv, char* argc[]){
     }
     cuCtxDestroy(cuContext);
 return 0;
+}
+
+void checkRes(char *message, CUresult res)
+{
+    if(res != CUDA_SUCCESS)
+    {
+        printf("%s\n", message);   
+        exit(1);
+    }
+}
+
+void createFirstGeneration(int *paths){
+    for(int i = 0; i < generationSize; ++i)
+    {
+        for(int j = 0; j < graphSize; ++j)
+        {
+    			paths[ i*graphSize + j ] = j;
+        }
+    		std::random_shuffle(paths+graphSize*i, paths+graphSize*(i+1));
+    }
+
 }

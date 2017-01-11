@@ -1,34 +1,55 @@
-#include <curand_kernel.h>
-
-struct Chromosome;
+#ifndef DECLS
+#define DECLS
 
 struct Point
 {
-  double x, y;
+  int x, y;
 };
 
-double dist(Point a, Point b);
-double distGraph(int a, int b);
+struct Chromosome{
+	int pathLength;
+	int* path;
 
-Chromosome *createGeneration( Chromosome *oldGen, Chromosome *newGen );  // returns best of new generation
-Chromosome *cross( Chromosome *a, Chromosome *b );                       // returns child of a and b
+	Chromosome(){
+		pathLength=0;
+		path = new int[graphSize];	
+		for(int i = 0; i < graphSize; ++i)
+			path[i] = i;
+		std::random_shuffle(path+1, path+graphSize);
+    updatePathLength();
+	}
 
-Point *graph;
+	Chromosome(int pathLength, int* pathx): pathLength(pathLength){
+    initializePath(pathx);
+	}
+  
+  Chromosome(int *pathx){
+    initializePath(pathx);
+    updatePathLength();
+  }
 
-curandState *devStates;
-struct Chromosome;
-int graphSize, generationSize, generationLimit;
-Chromosome* oldGeneration[generationSize];
-Chromosome* newGeneration[generationSize];
-CUfunction breed;
+	void put(int* pathx){
+    pathLength = 0;
+		path[0] = pathx[0];
+    
+		for(int i = 1; i < graphSize; ++i){
+			path[i] = pathx[i];
+			pathLength += distGraph(path[i-1], path[i]);
+		}
+    
+		pathLength+=distGraph(path[graphSize-1], path[0]);
+	}
 
-#include "Chromosome.cpp"
+	~Chromosome(){
+		pathLength = 0;
+		delete [] path;
+	}
+  
+ };
 
-double dist(Point a, Point b){
-	return (a.x-b.x)*(a.x-b.x) + (a.y-b.y)*(a.y-b.y);
+bool operator<( Chromosome a, Chromosome b )
+{
+  return a.pathLength < b.pathLength;
 }
 
-double distGraph(int a, int b){
-  return dist(graph[a], graph[b]); 
-}
-
+#endif
