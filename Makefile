@@ -17,14 +17,14 @@ LIB_CUDA := -L/usr/lib/nvidia-current -lcuda
 NVCCOPTIONS = -arch sm_20 -ptx
 
 # Common flags
-COMMONFLAGS += $(INCLUDES)
+COMMONFLAGS += $(INCLUDES) -w
 NVCCFLAGS += $(COMMONFLAGS) $(NVCCOPTIONS)
 CXXFLAGS += $(COMMONFLAGS)
 CFLAGS += $(COMMONFLAGS)
 
 
 
-CUDA_OBJS = breed.ptx cross.ptx
+CUDA_OBJS = breed.ptx cross.ptx initializeChromosomes.ptx cuDecls.ptx
 OBJS = host.cpp.o createGeneration.cpp.o
 TARGET = solution.x
 LINKLINE = $(LINK) -o $(TARGET) $(OBJS) $(LIB_CUDA)

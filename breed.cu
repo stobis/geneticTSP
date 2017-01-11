@@ -1,25 +1,26 @@
 #include<cstdio>
 #include<cstdlib>
+
 #include "decls.hpp"
+#include "cuDecls.cu"
 
 extern "C" {
   __global__
-    void breed(int* oldGen, int* newGen, int generationSize, int V, curandState *state){
+    void breed(Chromosome* oldGen, Chromosome* newGen){
       int thid = (blockIdx.x * blockDim.x) + threadIdx.x;
       if(thid > generationSize ) return;
-      curand_init(0, thid, 0, 0);
+      curand_init(1234, thid, 0, (curandStateTest_t *)0);
       
-      int test = rand();
+      int parentA = getRandNorm(0, graphSize);
+      int parentB = getRandNorm(0, graphSize);
 
-      int parentA = getRandNorm(0, V, &state[thid]);
-      int parentB = getRandNorm(0, V, &state[thid]);
-      cross(oldGen+parentA, oldGen+parentB, newGen+thid, V);
+      cross(oldGen+parentA, oldGen+parentB, newGen+thid);
     }
 
-  __global__
-    int getRandNorm(int p, int q, curandState &state)
+  __device__
+    int getRandNorm(int p, int q)
     {
-      double x = curand_normal(statae, 0, (q-p)/4);
+      double x = curand_normal((curandState_t *)0) * (q-p)/4;
       if( x < 0 ) x = -x;
 
       int res = x;

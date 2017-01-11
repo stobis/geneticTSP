@@ -5,10 +5,11 @@
 #include <algorithm>
 #include <cstdlib>
 
-#include "decls.hpp"
+#include "hostDecls.hpp"
+#include "hostDefs.cpp"
+#include "structDefs.cpp"
 
 void createFirstGeneration(int *paths);
-void checkRes(char *message, CUresult res);
 
 int main(int argv, char* argc[]){
 	srand (time(NULL));
@@ -55,14 +56,16 @@ int main(int argv, char* argc[]){
 
     scanf("%d", &graphSize, &generationLimit);
     generationSize = 2*graphSize;
+
     newGeneration = new Chromosome[generationSize];
     oldGeneration = new Chromosome[generationSize];
-    createFirstGeneration(); // nie wiem czy potrzebne
+
     graph = new Point[graphSize];
-    double a, b;
+    int a, b;
     for(int i = 0; i < graphSize; ++i){
     	scanf("%d%d", &a, &b);
-    	graph[i] = new Point(a, b);
+      graph[i].x = a;
+      graph[i].y = b;
     }
 
     res = cuMemAlloc(&devGraph, sizeof(Point)*graphSize);
@@ -72,10 +75,10 @@ int main(int argv, char* argc[]){
     res = cuMemcpyHtoD(devGraph, graph, sizeof(Point)*graphSize);
     checkRes("cannot copy the table graph", res);
    
-    res = cuMemAlloc(&devOldgeneration, sizeof(Chromosome)*generationSize);
+    res = cuMemAlloc(&devOldGeneration, sizeof(Chromosome)*generationSize);
     checkRes("cannot allocate Asuma", res);
 
-    res = cuMemAlloc(&devNewgeneration, sizeof(Chromosome)*generationSize);
+    res = cuMemAlloc(&devNewGeneration, sizeof(Chromosome)*generationSize);
     checkRes("cannot allocate Asuma", res);
 
     res = cuMemAlloc(&devOldPaths, sizeof(int)*generationSize*graphSize);
@@ -87,24 +90,24 @@ int main(int argv, char* argc[]){
     oldPaths = new int[generationSize*graphSize];
     newPaths = new int[generationSize*graphSize];
 
-    createGeneration(oldPaths);
-    createGeneration(newPaths);
+    createFirstGeneration(oldPaths);
+    createFirstGeneration(newPaths);
     
-    res = cuLaunchKernel( declsFunc, 1, 1, 1, 1, 1, 1, 0, 0, 
-            (void*){ &devGraph, &devOldgeneration, &devNewgeneration, &devOldPaths, &devNewPaths, &graphSize, &generationSize }, 0 );
+    void *declsArgs[] = { &devGraph, &devOldGeneration, &devNewGeneration, &devOldPaths, &devNewPaths, &graphSize, &generationSize };
+    res = cuLaunchKernel( declsFunc, 1, 1, 1, 1, 1, 1, 0, 0, declsArgs, 0 );
 
 
     
     int threadsPerBlock = 1024;
     int blocksPerGrid = ( generationSize + threadsPerBlock - 1 ) / threadsPerBlock;
 
-    void *initArgs[] = { &devOldgeneration, &devOldPaths };
+    void *initArgs[] = { &devOldGeneration, &devOldPaths };
     res = cuLaunchKernel( initializeChromosomes, blocksPerGrid, 1, 1, threadsPerBlock, 1, 1, 0, 0, initArgs, 0 );
     
 
-    Chromosome theBest;
     for(int i = 0; i < generationLimit; ++i){
-    	theBest = createGeneration(devOldgeneration, devNewgeneration)
+    	createGeneration(devOldGeneration, devNewGeneration);
+      std::swap(devOldGeneration, devNewGeneration);
     }
     cuCtxDestroy(cuContext);
 return 0;

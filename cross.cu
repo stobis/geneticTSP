@@ -3,9 +3,10 @@
 #include "decls.hpp"
 
 extern "C" {
-  __global__
-    Chromosome *cross( Chromosome *a, Chromosome *b ) {
-      return a;
+    __device__
+    void cross( Chromosome *a, Chromosome *b, Chromosome *child )
+    {
+        //TODO
     }
 }
 
