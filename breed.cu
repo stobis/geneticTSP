@@ -1,8 +1,10 @@
 #include<cstdio>
 #include<cstdlib>
+#include <curand_kernel.h>
 
 #include "decls.hpp"
 #include "cuDecls.cu"
+#include "structDefs.cpp"
 
 extern "C" {
   __global__

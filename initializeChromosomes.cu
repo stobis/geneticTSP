@@ -2,11 +2,13 @@
 #include<cstdlib>
 
 #include "cuDecls.cu"
+#include "structDefs.cpp"
 
 extern "C" {
 
   __global__
     void initializeChromosome( Chromosome *chromosomes, int *paths) {
+        printf("%d\n", generationSize);
       int thid = (blockIdx.x * blockDim.x) + threadIdx.x;
       if(thid >= generationSize) return;
 

@@ -44,17 +44,17 @@ int main(int argv, char* argc[]){
     res = cuModuleLoad(&initModule, "initializeChromosomes.ptx");
     checkRes("cannot load init module", res);    
 
-    res = cuModuleGetFunction(&initializeChromosomes, initModule, "initializeChromosomes");
+    res = cuModuleGetFunction(&initializeChromosomes, initModule, "initializeChromosome");
     checkRes("cannot acquire init module", res);
 
     CUmodule declsModule = (CUmodule)0;
-    res = cuModuleLoad(&declsModule, "cuDecls.ptx");
+    res = cuModuleLoad(&declsModule, "cuDefs.ptx");
     checkRes("cannot load decls module", res);
 
     res = cuModuleGetFunction(&declsFunc, declsModule, "initializeVariables");
     checkRes("cannot acquire decls module", res);
 
-    scanf("%d", &graphSize, &generationLimit);
+    scanf("%d %d", &graphSize, &generationLimit);
     generationSize = 2*graphSize;
 
     newGeneration = new Chromosome[generationSize];
@@ -95,6 +95,9 @@ int main(int argv, char* argc[]){
     
     void *declsArgs[] = { &devGraph, &devOldGeneration, &devNewGeneration, &devOldPaths, &devNewPaths, &graphSize, &generationSize };
     res = cuLaunchKernel( declsFunc, 1, 1, 1, 1, 1, 1, 0, 0, declsArgs, 0 );
+    checkRes("cannot run declsFunc kernel", res);
+    res = cuCtxSynchronize();
+    checkRes("cannot sync after declsFunc", res);
 
 
     
@@ -103,7 +106,11 @@ int main(int argv, char* argc[]){
 
     void *initArgs[] = { &devOldGeneration, &devOldPaths };
     res = cuLaunchKernel( initializeChromosomes, blocksPerGrid, 1, 1, threadsPerBlock, 1, 1, 0, 0, initArgs, 0 );
+    checkRes("cannot run init kernel", res);
+    res = cuCtxSynchronize();
+    checkRes("cannoc sync after init kernel", res);
     
+    return 0;
 
     for(int i = 0; i < generationLimit; ++i){
     	createGeneration(devOldGeneration, devNewGeneration);
