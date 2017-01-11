@@ -32,26 +32,18 @@ int main(int argv, char* argc[]){
         exit(1);
     }
 
-    CUmodule breedModule = (CUmodule)0;
-    res = cuModuleLoad(&breedModule, "breed.ptx");
+    CUmodule uberModule = (CUmodule)0;
+    res = cuModuleLoad(&uberModule, "cuda.ptx");
     checkRes("cannot load breed module", res);  
 
-    res = cuModuleGetFunction(&breed, breedModule, "breed");
+    res = cuModuleGetFunction(&breed, uberModule, "breed");
     checkRes("cannot acquire kernel handle suma", res);
 
 
-    CUmodule initModule = (CUmodule)0;
-    res = cuModuleLoad(&initModule, "initializeChromosomes.ptx");
-    checkRes("cannot load init module", res);    
-
-    res = cuModuleGetFunction(&initializeChromosomes, initModule, "initializeChromosome");
+    res = cuModuleGetFunction(&initializeChromosomes, uberModule, "initializeChromosome");
     checkRes("cannot acquire init module", res);
 
-    CUmodule declsModule = (CUmodule)0;
-    res = cuModuleLoad(&declsModule, "cuDefs.ptx");
-    checkRes("cannot load decls module", res);
-
-    res = cuModuleGetFunction(&declsFunc, declsModule, "initializeVariables");
+    res = cuModuleGetFunction(&declsFunc, uberModule, "initializeVariables");
     checkRes("cannot acquire decls module", res);
 
     scanf("%d %d", &graphSize, &generationLimit);
@@ -92,6 +84,11 @@ int main(int argv, char* argc[]){
 
     createFirstGeneration(oldPaths);
     createFirstGeneration(newPaths);
+
+    res = cuMemcpyHtoD(devOldPaths, oldPaths, sizeof(int)*generationSize*graphSize);
+    checkRes("cannot cpy paths", res);
+    res = cuMemcpyHtoD(devNewPaths, newPaths, sizeof(int)*generationSize*graphSize);
+    checkRes("cannot cpy paths", res);
     
     void *declsArgs[] = { &devGraph, &devOldGeneration, &devNewGeneration, &devOldPaths, &devNewPaths, &graphSize, &generationSize };
     res = cuLaunchKernel( declsFunc, 1, 1, 1, 1, 1, 1, 0, 0, declsArgs, 0 );
@@ -124,7 +121,7 @@ void checkRes(char *message, CUresult res)
 {
     if(res != CUDA_SUCCESS)
     {
-        printf("%s\n", message);   
+        printf("%s %d\n", message, res);   
         exit(1);
     }
 }

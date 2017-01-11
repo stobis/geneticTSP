@@ -24,7 +24,7 @@ CFLAGS += $(COMMONFLAGS)
 
 
 
-CUDA_OBJS = breed.ptx cross.ptx initializeChromosomes.ptx cuDefs.ptx
+CUDA_OBJS = cuda.ptx
 OBJS = host.cpp.o createGeneration.cpp.o
 TARGET = solution.x
 LINKLINE = $(LINK) -o $(TARGET) $(OBJS) $(LIB_CUDA)
