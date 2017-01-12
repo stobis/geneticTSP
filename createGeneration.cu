@@ -8,8 +8,9 @@
 void createGeneration( CUdeviceptr oldGen, CUdeviceptr newGen )
 {
     printf("BBB\n");
-    thrust::device_ptr<Chromosome> p = thrust::device_pointer_cast( (Chromosome *) oldGen );
-  //thrust::sort( p, p+generationSize );  // nie wiem czy dziala, znalazlem na necie;
+    thrust::device_ptr<Chromosome> p( (Chromosome *) oldGen );
+    thrust::device_ptr<Chromosome> q( ((Chromosome *) oldGen) + generationSize );
+  thrust::sort( p, q );  // nie wiem czy dziala, znalazlem na necie;
 
     printf("AAA\n");
 
