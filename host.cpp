@@ -113,6 +113,16 @@ int main(int argv, char *argc[])
   res = cuCtxSynchronize();
   checkRes("cannoc sync after init kernel", res);
 
+
+  void *initArgsNew[] = {&devNewGeneration, &devNewPaths};
+  res = cuLaunchKernel(initializeChromosomes, blocksPerGrid, 1, 1, threadsPerBlock, 1, 1, 0, 0, initArgsNew, 0);
+  checkRes("cannot run init kernel", res);
+  res = cuCtxSynchronize();
+  checkRes("cannoc sync after init kernel", res);
+
+
+
+
   cuMemcpyDtoH(newGeneration, devNewGeneration, sizeof(Chromosome));
   int *minPtr = newGeneration[0].path;
 

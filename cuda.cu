@@ -21,7 +21,7 @@ __global__
 void breed(Chromosome *oldGen, Chromosome *newGen, double *ratios, curandState *curandStates)
 {
   int thid = (blockIdx.x * blockDim.x) + threadIdx.x;
-  if (thid > generationSize) return;
+  if (thid >= generationSize) return;
 
   curandState * fakeState = new curandState;
   curand_init(1234, thid, 0, fakeState);
@@ -60,6 +60,8 @@ void cross(Chromosome *a, Chromosome *b, Chromosome *child)
   int global_thid = blockIdx.x * blockDim.x + threadIdx.x;
   int thid = threadIdx.x;
 
+
+
   /* init usages */
 
   bool *visited = new bool[graphSize];
@@ -77,7 +79,6 @@ void cross(Chromosome *a, Chromosome *b, Chromosome *child)
 
   int P = res[resSize - 1]; // niezmiennik: P jest ostatnim wierzcholkiem danego, czesciowego wyniku
   int P1 = 0, P2 = 0;
-
 
   while (resSize < graphSize)
   {
@@ -166,11 +167,12 @@ void cross(Chromosome *a, Chromosome *b, Chromosome *child)
     P = res[resSize - 1];
 
   }
-
+//printf("THID %d CP %p %p\n", global_thid, child, child->path); 
   // Przepisuje wynik tam gdzie trzeba
   for (int i = 0; i < resSize; ++i)
   {
     child->path[i] = res[i];
+  //  printf("%d\n", res[i]);
   }
   child->pathLength = calculatePathLength(child, child->path);
 
