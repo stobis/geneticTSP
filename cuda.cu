@@ -147,6 +147,9 @@ __device__ Point *graph;
             child->path[i] = res[i];
         }
         child->pathLength = calculatePathLength(child, child->path);
+
+        delete[] res;
+        delete[] visited;
         
         return;
      
@@ -161,29 +164,18 @@ __device__ Point *graph;
         newPaths = cuNewPaths;
         graphSize = cuGraphSize;
         generationSize = cuGenerationSize;
-        printf("%d, %d\n", graphSize, generationSize);
     }
 
   __global__
     void initializeChromosome( Chromosome *chromosomes, int *paths) {
-        printf("%d\n", generationSize);
       int thid = (blockIdx.x * blockDim.x) + threadIdx.x;
       if(thid >= generationSize) return;
 
       chromosomes[thid].path = paths+(graphSize*thid);
       chromosomes[thid].pathLength = calculatePathLength(chromosomes+thid, paths+thid*graphSize);
 
-      printf("DUPA: %d %d\n", thid, chromosomes[thid].pathLength);
-      
-      
       // Simple cross test for debug only!
       __syncthreads();
-      
-      if(thid == 0) {
-      
-        cross(chromosomes, chromosomes+1, chromosomes+2);
-        printf("CHILD LEN is %d\n", chromosomes[2].pathLength);
-      }
     }
 
   __device__
@@ -193,7 +185,6 @@ __device__ Point *graph;
     			pathLength += distGraph(path[i-1], path[i]);
     		}
     		pathLength += distGraph(path[graphSize-1], path[0]);
-        printf("PUPA\n");
       return pathLength;
     }
 
@@ -207,4 +198,18 @@ __device__ Point *graph;
     int distGraph(int a, int b){
       return dist(graph[a], graph[b]); 
     }
+
+ __global__
+    void printGraph(Chromosome* g){
+      int thid = (blockIdx.x * blockDim.x) + threadIdx.x;
+      if(thid > generationSize ) return;
+
+      printf("%d: len=%d, path=\n", thid, g[thid].pathLength);
+      for(int i=0; i<graphSize; i++)
+      {
+        printf("%d, %d: %d \n", thid, i, g[thid].path[i]);   
+      }
+      
+    }
+
 }

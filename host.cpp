@@ -39,12 +39,14 @@ int main(int argv, char* argc[]){
     res = cuModuleGetFunction(&breed, uberModule, "breed");
     checkRes("cannot acquire kernel handle suma", res);
 
-
     res = cuModuleGetFunction(&initializeChromosomes, uberModule, "initializeChromosome");
     checkRes("cannot acquire init module", res);
 
     res = cuModuleGetFunction(&declsFunc, uberModule, "initializeVariables");
     checkRes("cannot acquire decls module", res);
+
+    res = cuModuleGetFunction(&printCu, uberModule, "printGraph");
+    checkRes("cannot acquire print kernel", res);
 
     scanf("%d %d", &graphSize, &generationLimit);
     generationSize = 2*graphSize;
@@ -106,13 +108,35 @@ int main(int argv, char* argc[]){
     checkRes("cannot run init kernel", res);
     res = cuCtxSynchronize();
     checkRes("cannoc sync after init kernel", res);
+
+    cuMemcpyDtoH(newGeneration, devNewGeneration, sizeof(Chromosome));
+    int *minPtr = newGeneration[0].path;
     
-    return 0;
 
     for(int i = 0; i < generationLimit; ++i){
     	createGeneration(devOldGeneration, devNewGeneration);
       std::swap(devOldGeneration, devNewGeneration);
     }
+    std::swap(devOldGeneration, devNewGeneration);
+
+    
+    res = cuMemcpyDtoH(newGeneration, devNewGeneration, sizeof(Chromosome)*generationSize);
+    for(int i=0; i<generationSize; i++)
+    {
+        newGeneration[i].path = (int*)((long long)newGeneration[i].path - (long long)minPtr);   
+        newGeneration[i].path = (int*)((long long)newGeneration[i].path + (long long)newPaths);
+    }
+
+    for(int i=0; i<generationSize; i++)
+    {
+        printf("%d: ", newGeneration[i].pathLength);
+        for(int j=0; j<graphSize; j++)
+        {
+            printf("%d ", newGeneration[i].path[j]);
+        }
+        printf("\n");
+    }
+    
     cuCtxDestroy(cuContext);
 return 0;
 }
@@ -133,7 +157,8 @@ void createFirstGeneration(int *paths){
         {
     			paths[ i*graphSize + j ] = j;
         }
-    		std::random_shuffle(paths+graphSize*i, paths+graphSize*(i+1));
+    		std::random_shuffle(paths+graphSize*i+1, paths+graphSize*(i+1));
+
     }
 
 }

@@ -25,7 +25,7 @@ CFLAGS += $(COMMONFLAGS)
 
 
 CUDA_OBJS = cuda.ptx
-OBJS = host.cpp.o createGeneration.cpp.o
+OBJS = host.cpp.o createGeneration.cpp.o printCudaGraph.cpp.o
 TARGET = solution.x
 LINKLINE = $(LINK) -o $(TARGET) $(OBJS) $(LIB_CUDA)
 
