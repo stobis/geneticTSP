@@ -1,7 +1,6 @@
 #include "cuda.h"
 
 #include "hostDecls.hpp"
-#include "structDefs.cpp"
 
 void printCudaGraph(CUdeviceptr ptr)
 {
@@ -10,7 +9,7 @@ void printCudaGraph(CUdeviceptr ptr)
   int blocksPerGrid = 1;
 
   CUresult res = cuLaunchKernel(printCu, blocksPerGrid, 1, 1, threadsPerBlock, 1, 1, 0, 0, args, 0);
-  checkRes("cannot run init kernel", res);
+  checkRes("cannot run print kernel", res);
   res = cuCtxSynchronize();
-  checkRes("cannoc sync after init kernel", res);
+  checkRes("cannoc sync after print kernel", res);
 }

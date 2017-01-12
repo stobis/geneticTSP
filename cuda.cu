@@ -4,7 +4,8 @@
 
 extern "C" {
 
-__device__ int getRandNorm(int p, int q);
+__device__ double getRand(double p, double q, curandState *state);
+__device__ int getRandomParent(double *ratios, curandState *state);
 __device__ void cross(Chromosome *a, Chromosome *b, Chromosome *child);
 
 __device__ int calculatePathLength(Chromosome *chromosome, int *path);
@@ -14,31 +15,41 @@ __device__ int distGraph(int a, int b);
 __device__ int *oldGeneration, *newGeneration, *oldPaths, *newPaths;
 __device__ int graphSize, generationSize;
 __device__ Point * graph;
+__device__ curandState * states;
 
 __global__
-void breed(Chromosome *oldGen, Chromosome *newGen)
+void breed(Chromosome *oldGen, Chromosome *newGen, double *ratios, curandState *curandStates)
 {
   int thid = (blockIdx.x * blockDim.x) + threadIdx.x;
   if (thid > generationSize) return;
-  curand_init(1234, thid, 0, (curandStateTest_t *) 0);
 
-  int parentA = getRandNorm(0, graphSize);
-  int parentB = getRandNorm(0, graphSize);
+  curandState * fakeState = new curandState;
+  curand_init(1234, thid, 0, fakeState);
 
+  int parentA = getRandomParent(ratios, fakeState);
+  int parentB = getRandomParent(ratios, fakeState);
+
+  printf("Breeding child: %d. Parents: %d, %d\n", thid, parentA, parentB);
   cross(oldGen + parentA, oldGen + parentB, newGen + thid);
+  printf("Breeding completed\n");
+
 }
 
 __device__
-int getRandNorm(int p, int q)
+int getRandomParent(double *ratios, curandState *state)
 {
-  double x = curand_normal((curandState_t *) 0) * (q - p) / 4;
-  if (x < 0) x = -x;
+  double x = getRand(0, ratios[generationSize - 1], state);
+  int res = 0;
+  while (res < generationSize && ratios[res] < x) //TODO: binsearch
+    res++;
 
-  int res = x;
-  if (res >= q)
-    res = 0;
+  return res;
+}
 
-  return res + p;
+__device__
+double getRand(double p, double q, curandState *state)
+{
+  return curand_uniform(state) * (q - p) + p;
 }
 
 __device__
@@ -54,17 +65,19 @@ void cross(Chromosome *a, Chromosome *b, Chromosome *child)
   bool *visited = new bool[graphSize];
 
   for (int i = 0; i < graphSize; ++i)
-  { ;
+  {
     visited[i] = false;
   }
 
   int *res = new int[graphSize];
+
   res[0] = 0;
   visited[0] = true;
   int resSize = 1;
 
   int P = res[resSize - 1]; // niezmiennik: P jest ostatnim wierzcholkiem danego, czesciowego wyniku
   int P1 = 0, P2 = 0;
+
 
   while (resSize < graphSize)
   {
@@ -230,10 +243,10 @@ void printGraph(Chromosome *g)
   int thid = (blockIdx.x * blockDim.x) + threadIdx.x;
   if (thid > generationSize) return;
 
-  printf("%d: len=%d, path=\n", thid, g[thid].pathLength);
+  printf("%d: len=%d\n", thid, g[thid].pathLength);
   for (int i = 0; i < graphSize; i++)
   {
-    printf("%d, %d: %d \n", thid, i, g[thid].path[i]);
+    printf("%d[%d]: %d \n", thid, i, g[thid].path[i]);
   }
 
 }

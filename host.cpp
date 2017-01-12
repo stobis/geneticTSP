@@ -119,7 +119,7 @@ int main(int argv, char *argc[])
 
   for (int i = 0; i < generationLimit; ++i)
   {
-    createGeneration(devOldGeneration, devNewGeneration);
+    createGeneration();
     std::swap(devOldGeneration, devNewGeneration);
   }
   std::swap(devOldGeneration, devNewGeneration);
@@ -150,7 +150,9 @@ void checkRes(char *message, CUresult res)
 {
   if (res != CUDA_SUCCESS)
   {
-    printf("%s %d\n", message, res);
+    const char *ptr;
+    cuGetErrorString(res, &ptr);
+    printf("%s: \"%s\"\n", message, ptr);
     exit(1);
   }
 }

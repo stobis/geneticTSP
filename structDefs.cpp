@@ -11,7 +11,7 @@ struct Chromosome
   int *path;
 };
 
-bool operator<(const Chromosome a, const Chromosome b)
-{
-  return a.pathLength < b.pathLength;
-}
+//bool operator<(const Chromosome a, const Chromosome b)
+//{
+//  return a.pathLength < b.pathLength;
+//}

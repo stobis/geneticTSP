@@ -6,7 +6,7 @@
 double dist(Point a, Point b);
 double distGraph(int a, int b);
 
-void createGeneration(CUdeviceptr oldGen, CUdeviceptr newGen);
+void createGeneration();
 void checkRes(char *message, CUresult res);
 void printCudaGraph(CUdeviceptr ptr);
 
@@ -22,5 +22,7 @@ extern CUfunction declsFunc;
 extern CUfunction printCu;
 
 extern CUdeviceptr devGraph, devOldGeneration, devNewGeneration, devOldPaths, devNewPaths;
+
+extern CUdeviceptr devCurandStates;
 
 #endif

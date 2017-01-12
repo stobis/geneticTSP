@@ -1,28 +1,48 @@
-#include <thrust/sort.h>
+#include <curand_kernel.h>
 #include <thrust/device_ptr.h>
+#include <thrust/scan.h>
+#include <thrust/sort.h>
 #include "cuda.h"
 
 #include "hostDecls.hpp"
 #include "structDefs.cpp"
 
-void createGeneration(CUdeviceptr oldGen, CUdeviceptr newGen)
+void createGeneration()
 {
-  printf("BBB\n");
-  thrust::device_ptr <Chromosome> p = thrust::device_pointer_cast((Chromosome *) oldGen);
-  //thrust::sort( p, p+generationSize );  // nie wiem czy dziala, znalazlem na necie;
+  CUresult res = cuMemcpyDtoH(oldGeneration, devOldGeneration, sizeof(Chromosome) * generationSize);
 
-  printf("AAA\n");
+  double *ratios = new double[generationSize];
+  double *ratiosSums = new double[generationSize];
 
-  printCudaGraph(oldGen);
 
-  void *breedingArgs[] = {&oldGen, &newGen};
+  for (int i = 0; i < generationSize; i++)
+  {
+    ratios[i] = 1.0 / (double) oldGeneration[i].pathLength;
+  }
+
+
+  thrust::inclusive_scan(ratios, ratios + generationSize, ratiosSums);
+
+  CUdeviceptr devRatiosSums;
+  res = cuMemAlloc(&devRatiosSums, sizeof(double) * generationSize);
+  checkRes("cannot alloc ratio sums", res);
+
+  res = cuMemcpyHtoD(devRatiosSums, ratiosSums, sizeof(double) * generationSize);
+  checkRes("cannot copy ratio sums", res);
+
+  res = cuMemAlloc(&devCurandStates, sizeof(curandState) * generationSize);
+  checkRes("cannot allocate cuRandStates", res);
+
+  void *breedingArgs[] = {&devOldGeneration, &devNewGeneration, &devRatiosSums, &devCurandStates};
 
   int threadsPerBlock = 1024;
   int blocksPerGrid = (generationSize + threadsPerBlock - 1) / threadsPerBlock;
 
-  CUresult res = cuLaunchKernel(breed, blocksPerGrid, 1, 1, threadsPerBlock, 1, 1, 0, 0, breedingArgs, 0);
-  checkRes("cannot launch breeding", res);
-  cuCtxSynchronize();
-  checkRes("cannot sync after breed", res);
-}
 
+  res = cuLaunchKernel(breed, blocksPerGrid, 1, 1, threadsPerBlock, 1, 1, 0, 0, breedingArgs, 0);
+  checkRes("cannot launch breeding", res);
+  res = cuCtxSynchronize();
+  checkRes("cannot sync after breed", res);
+
+  //printCudaGraph(devOldGeneration);
+}

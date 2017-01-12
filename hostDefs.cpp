@@ -16,3 +16,5 @@ CUfunction declsFunc;
 CUfunction printCu;
 
 CUdeviceptr devGraph, devOldGeneration, devNewGeneration, devOldPaths, devNewPaths;
+
+CUdeviceptr devCurandStates;
