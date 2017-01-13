@@ -7,6 +7,8 @@ extern "C" {
 __device__ double getRand(double p, double q, curandState *state);
 __device__ int getRandomParent(double *ratios, curandState *state);
 __device__ void cross(Chromosome *a, Chromosome *b, Chromosome *child);
+__global__ void breed(Chromosome *oldGen, Chromosome *newGen, double *ratios, curandState *curandStates);
+__global__ void mutate(Chromosome *oldGen, Chromosome *newGen, double *ratios, curandState *curandStates);
 
 __device__ int calculatePathLength(Chromosome *chromosome, int *path);
 __device__ int dist(Point a, Point b);
@@ -33,6 +35,8 @@ void breed(Chromosome *oldGen, Chromosome *newGen, double *ratios, curandState *
   cross(oldGen + parentA, oldGen + parentB, newGen + thid);
   //printf("Breeding completed\n");
 
+  delete fakeState;
+
 }
 
 __device__
@@ -50,6 +54,33 @@ __device__
 double getRand(double p, double q, curandState *state)
 {
   return curand_uniform(state) * (q - p) + p;
+}
+
+__global__
+void mutate(Chromosome *oldGen, Chromosome *newGen, double *ratios, curandState *curandStates)
+{
+  int thid = (blockIdx.x * blockDim.x) + threadIdx.x;
+  if (thid >= generationSize) return;
+
+  double mutationRatio = 0.50;
+
+  curandState * fakeState = new curandState;
+  curand_init(1234, thid, 0, fakeState);
+
+  while( getRand(0, 1, fakeState) < mutationRatio )
+  {
+    //printf("Mutating...\n"); 
+    int a = getRand(0, 1, fakeState) * graphSize;
+    int b = getRand(0, 1, fakeState) * graphSize;
+    
+    int tmp = newGen[thid].path[a];
+    newGen[thid].path[a] = newGen[thid].path[b];
+    newGen[thid].path[b] = tmp;
+
+    newGen[thid].pathLength = calculatePathLength( newGen+thid, newGen[thid].path );
+  }
+
+  delete fakeState;
 }
 
 __device__

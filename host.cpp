@@ -1,4 +1,5 @@
 #include "cuda.h"
+#include <curand_kernel.h>
 #include <cstdio>
 #include <string>
 #include <ctime>
@@ -10,6 +11,8 @@
 #include "structDefs.cpp"
 
 void createFirstGeneration(int *paths);
+
+bool operator<(const Chromosome a, const Chromosome b);
 
 int main(int argv, char *argc[])
 {
@@ -51,6 +54,9 @@ int main(int argv, char *argc[])
   res = cuModuleGetFunction(&printCu, uberModule, "printGraph");
   checkRes("cannot acquire print kernel", res);
 
+  res = cuModuleGetFunction(&mutate, uberModule, "mutate");
+  checkRes("cannot acquire mutate kernel", res);
+
   scanf("%d %d", &graphSize, &generationLimit);
   generationSize = 2 * graphSize;
 
@@ -84,6 +90,12 @@ int main(int argv, char *argc[])
 
   res = cuMemAlloc(&devNewPaths, sizeof(int) * generationSize * graphSize);
   checkRes("cannot allocate NewPaths", res);
+
+  res = cuMemAlloc(&devRatiosSums, sizeof(double) * generationSize);
+  checkRes("cannot alloc ratio sums", res);
+
+  res = cuMemAlloc(&devCurandStates, sizeof(curandState) * generationSize);
+  checkRes("cannot allocate cuRandStates", res);
 
   oldPaths = new int[generationSize * graphSize];
   newPaths = new int[generationSize * graphSize];
@@ -161,6 +173,9 @@ int main(int argv, char *argc[])
     newGeneration[i].path = (int *) ((long long) newGeneration[i].path + (long long) newPaths);
   }
 
+  std::sort(newGeneration, newGeneration+generationSize);
+  std::reverse(newGeneration, newGeneration+generationSize);
+
   for (int i = 0; i < generationSize; i++)
   {
     printf("%d: ", newGeneration[i].pathLength);
@@ -198,4 +213,9 @@ void createFirstGeneration(int *paths)
 
   }
 
+}
+
+bool operator<(const Chromosome a, const Chromosome b)
+{
+  return a.pathLength < b.pathLength;
 }

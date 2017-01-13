@@ -23,15 +23,9 @@ void createGeneration()
 
   thrust::inclusive_scan(ratios, ratios + generationSize, ratiosSums);
 
-  CUdeviceptr devRatiosSums;
-  res = cuMemAlloc(&devRatiosSums, sizeof(double) * generationSize);
-  checkRes("cannot alloc ratio sums", res);
 
   res = cuMemcpyHtoD(devRatiosSums, ratiosSums, sizeof(double) * generationSize);
   checkRes("cannot copy ratio sums", res);
-
-  res = cuMemAlloc(&devCurandStates, sizeof(curandState) * generationSize);
-  checkRes("cannot allocate cuRandStates", res);
 
   void *breedingArgs[] = {&devOldGeneration, &devNewGeneration, &devRatiosSums, &devCurandStates};
 
@@ -46,8 +40,15 @@ void createGeneration()
 
   //printCudaGraph(devNewGeneration);
   //
+  res = cuLaunchKernel(mutate, blocksPerGrid, 1, 1, threadsPerBlock, 1, 1, 0, 0, breedingArgs, 0);
+  checkRes("cannot launch mutating", res);
+  res = cuCtxSynchronize();
+  checkRes("cannot sync after mutation", res);
 
   Chromosome *tmp = oldGeneration;
   oldGeneration = newGeneration;
   newGeneration = tmp;
+
+  delete[] ratios;
+  delete[] ratiosSums;
 }

@@ -20,9 +20,11 @@ extern CUfunction breed;
 extern CUfunction initializeChromosomes;
 extern CUfunction declsFunc;
 extern CUfunction printCu;
+extern CUfunction mutate;
 
 extern CUdeviceptr devGraph, devOldGeneration, devNewGeneration, devOldPaths, devNewPaths;
 
 extern CUdeviceptr devCurandStates;
+extern CUdeviceptr devRatiosSums;
 
 #endif

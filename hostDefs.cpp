@@ -14,7 +14,9 @@ CUfunction breed;
 CUfunction initializeChromosomes;
 CUfunction declsFunc;
 CUfunction printCu;
+CUfunction mutate;
 
 CUdeviceptr devGraph, devOldGeneration, devNewGeneration, devOldPaths, devNewPaths;
 
 CUdeviceptr devCurandStates;
+CUdeviceptr devRatiosSums;
