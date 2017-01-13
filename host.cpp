@@ -57,7 +57,7 @@ int main(int argv, char *argc[])
   res = cuModuleGetFunction(&mutate, uberModule, "mutate");
   checkRes("cannot acquire mutate kernel", res);
 
-  scanf("%d %d", &graphSize, &generationLimit);
+  scanf("%d %d %f", &graphSize, &generationLimit, &mutationRatio);
   generationSize = 2 * graphSize;
 
   newGeneration = new Chromosome[generationSize];
@@ -109,7 +109,7 @@ int main(int argv, char *argc[])
   checkRes("cannot cpy paths", res);
 
   void *declsArgs[] = {&devGraph, &devOldGeneration, &devNewGeneration, &devOldPaths, &devNewPaths, &graphSize,
-                       &generationSize};
+                       &generationSize, &mutationRatio};
   res = cuLaunchKernel(declsFunc, 1, 1, 1, 1, 1, 1, 0, 0, declsArgs, 0);
   checkRes("cannot run declsFunc kernel", res);
   res = cuCtxSynchronize();

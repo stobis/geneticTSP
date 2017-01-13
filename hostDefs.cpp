@@ -8,6 +8,7 @@ Point *graph;
 
 int graphSize, generationSize, generationLimit;
 int *oldPaths, *newPaths;
+double mutationRatio;
 Chromosome *oldGeneration;
 Chromosome *newGeneration;
 CUfunction breed;

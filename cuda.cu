@@ -16,6 +16,7 @@ __device__ int distGraph(int a, int b);
 
 __device__ int *oldGeneration, *newGeneration, *oldPaths, *newPaths;
 __device__ int graphSize, generationSize;
+__device__ double mutationRatio;
 __device__ Point * graph;
 __device__ curandState * states;
 
@@ -61,8 +62,6 @@ void mutate(Chromosome *oldGen, Chromosome *newGen, double *ratios, curandState 
 {
   int thid = (blockIdx.x * blockDim.x) + threadIdx.x;
   if (thid >= generationSize) return;
-
-  double mutationRatio = 0.50;
 
   curandState * fakeState = new curandState;
   curand_init(1234, thid, 0, fakeState);
@@ -221,7 +220,8 @@ void initializeVariables(Point *cuGraph,
                          int *cuOldPaths,
                          int *cuNewPaths,
                          int cuGraphSize,
-                         int cuGenerationSize)
+                         int cuGenerationSize,
+                         double cuMutationRatio)
 {
   graph = cuGraph;
   oldGeneration = cuOldGen;
@@ -230,6 +230,7 @@ void initializeVariables(Point *cuGraph,
   newPaths = cuNewPaths;
   graphSize = cuGraphSize;
   generationSize = cuGenerationSize;
+  mutationRatio = cuMutationRatio;
 }
 
 __global__

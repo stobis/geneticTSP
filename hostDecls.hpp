@@ -14,6 +14,7 @@ extern Point *graph;
 
 extern int graphSize, generationSize, generationLimit;
 extern int *oldPaths, *newPaths;
+extern double mutationRatio;
 extern Chromosome *oldGeneration;
 extern Chromosome *newGeneration;
 extern CUfunction breed;
