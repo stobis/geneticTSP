@@ -57,7 +57,7 @@ int main(int argv, char *argc[])
   res = cuModuleGetFunction(&mutate, uberModule, "mutate");
   checkRes("cannot acquire mutate kernel", res);
 
-  scanf("%d %d %f", &graphSize, &generationLimit, &mutationRatio);
+  scanf("%d %d %lf", &graphSize, &generationLimit, &mutationRatio);
   generationSize = 2 * graphSize;
 
   newGeneration = new Chromosome[generationSize];
@@ -178,7 +178,7 @@ int main(int argv, char *argc[])
 
   for (int i = 0; i < generationSize; i++)
   {
-    printf("%d: ", newGeneration[i].pathLength);
+    printf("%lf: ", newGeneration[i].pathLength);
     for (int j = 0; j < graphSize; j++)
     {
       printf("%d ", newGeneration[i].path[j]);

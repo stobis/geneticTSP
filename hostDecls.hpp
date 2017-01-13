@@ -3,9 +3,6 @@
 
 #include "decls.hpp"
 
-double dist(Point a, Point b);
-double distGraph(int a, int b);
-
 void createGeneration();
 void checkRes(char *message, CUresult res);
 void printCudaGraph(CUdeviceptr ptr);

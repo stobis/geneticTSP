@@ -17,7 +17,7 @@ void createGeneration()
 
   for (int i = 0; i < generationSize; i++)
   {
-    ratios[i] = 1.0 / (double) oldGeneration[i].pathLength;
+    ratios[i] = 1.0 / (oldGeneration[i].pathLength * oldGeneration[i].pathLength);
   }
 
 
@@ -27,11 +27,18 @@ void createGeneration()
   res = cuMemcpyHtoD(devRatiosSums, ratiosSums, sizeof(double) * generationSize);
   checkRes("cannot copy ratio sums", res);
 
-  void *breedingArgs[] = {&devOldGeneration, &devNewGeneration, &devRatiosSums, &devCurandStates};
 
   int threadsPerBlock = 1024;
   int blocksPerGrid = (generationSize + threadsPerBlock - 1) / threadsPerBlock;
 
+  void *mutationArgs[] = {&devOldGeneration, &devCurandStates};
+
+  res = cuLaunchKernel(mutate, blocksPerGrid, 1, 1, threadsPerBlock, 1, 1, 0, 0, mutationArgs, 0);
+  checkRes("cannot launch mutating", res);
+  res = cuCtxSynchronize();
+  checkRes("cannot sync after mutation", res);
+
+  void *breedingArgs[] = {&devOldGeneration, &devNewGeneration, &devRatiosSums, &devCurandStates};
 
   res = cuLaunchKernel(breed, blocksPerGrid, 1, 1, threadsPerBlock, 1, 1, 0, 0, breedingArgs, 0);
   checkRes("cannot launch breeding", res);
@@ -40,10 +47,6 @@ void createGeneration()
 
   //printCudaGraph(devNewGeneration);
   //
-  res = cuLaunchKernel(mutate, blocksPerGrid, 1, 1, threadsPerBlock, 1, 1, 0, 0, breedingArgs, 0);
-  checkRes("cannot launch mutating", res);
-  res = cuCtxSynchronize();
-  checkRes("cannot sync after mutation", res);
 
   Chromosome *tmp = oldGeneration;
   oldGeneration = newGeneration;

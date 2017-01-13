@@ -8,11 +8,11 @@ __device__ double getRand(double p, double q, curandState *state);
 __device__ int getRandomParent(double *ratios, curandState *state);
 __device__ void cross(Chromosome *a, Chromosome *b, Chromosome *child);
 __global__ void breed(Chromosome *oldGen, Chromosome *newGen, double *ratios, curandState *curandStates);
-__global__ void mutate(Chromosome *oldGen, Chromosome *newGen, double *ratios, curandState *curandStates);
+__global__ void mutate(Chromosome *oldGen, curandState *curandStates);
 
-__device__ int calculatePathLength(Chromosome *chromosome, int *path);
-__device__ int dist(Point a, Point b);
-__device__ int distGraph(int a, int b);
+__device__ double calculatePathLength(Chromosome *chromosome, int *path);
+__device__ double dist(Point a, Point b);
+__device__ double distGraph(int a, int b);
 
 __device__ int *oldGeneration, *newGeneration, *oldPaths, *newPaths;
 __device__ int graphSize, generationSize;
@@ -58,7 +58,7 @@ double getRand(double p, double q, curandState *state)
 }
 
 __global__
-void mutate(Chromosome *oldGen, Chromosome *newGen, double *ratios, curandState *curandStates)
+void mutate(Chromosome *tab, curandState *curandStates)
 {
   int thid = (blockIdx.x * blockDim.x) + threadIdx.x;
   if (thid >= generationSize) return;
@@ -68,15 +68,14 @@ void mutate(Chromosome *oldGen, Chromosome *newGen, double *ratios, curandState 
 
   while( getRand(0, 1, fakeState) < mutationRatio )
   {
-    //printf("Mutating...\n"); 
     int a = getRand(0, 1, fakeState) * graphSize;
     int b = getRand(0, 1, fakeState) * graphSize;
     
-    int tmp = newGen[thid].path[a];
-    newGen[thid].path[a] = newGen[thid].path[b];
-    newGen[thid].path[b] = tmp;
+    int tmp = tab[thid].path[a];
+    tab[thid].path[a] = tab[thid].path[b];
+    tab[thid].path[b] = tmp;
 
-    newGen[thid].pathLength = calculatePathLength( newGen+thid, newGen[thid].path );
+    tab[thid].pathLength = calculatePathLength( tab+thid, tab[thid].path );
   }
 
   delete fakeState;
@@ -247,9 +246,9 @@ void initializeChromosome(Chromosome *chromosomes, int *paths)
 }
 
 __device__
-int calculatePathLength(Chromosome *chromosome, int *path)
+double calculatePathLength(Chromosome *chromosome, int *path)
 {
-  int pathLength = 0;
+  double pathLength = 0;
   for (int i = 1; i < graphSize; ++i)
   {
     pathLength += distGraph(path[i - 1], path[i]);
@@ -259,14 +258,18 @@ int calculatePathLength(Chromosome *chromosome, int *path)
 }
 
 __device__
-int dist(Point a, Point b)
+double dist(Point a, Point b)
 {
   //return 1;
-  return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
+  double x = a.x - b.x;
+  double y = a.y - b.y;
+
+  return sqrt( x*x + y*y );
+  
 }
 
 __device__
-int distGraph(int a, int b)
+double distGraph(int a, int b)
 {
   return dist(graph[a], graph[b]);
 }
@@ -277,7 +280,7 @@ void printGraph(Chromosome *g)
   int thid = (blockIdx.x * blockDim.x) + threadIdx.x;
   if (thid > generationSize) return;
 
-  printf("%d: len=%d\n", thid, g[thid].pathLength);
+  printf("%d: len=%lf\n", thid, g[thid].pathLength);
   for (int i = 0; i < graphSize; i++)
   {
     printf("%d[%d]: %d \n", thid, i, g[thid].path[i]);

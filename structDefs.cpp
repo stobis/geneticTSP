@@ -7,7 +7,7 @@ struct Point
 
 struct Chromosome
 {
-  int pathLength;
+  double pathLength;
   int *path;
 };
 
