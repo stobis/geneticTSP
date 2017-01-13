@@ -157,7 +157,6 @@ int main(int argv, char *argc[])
   
   for (int i = 0; i < generationSize; i++)
   {
-    printf("ptr: %p, minPtr: %p\n", newGeneration[i].path, minPtr);
     newGeneration[i].path = (int *) ((long long) newGeneration[i].path - (long long) minPtr);
     newGeneration[i].path = (int *) ((long long) newGeneration[i].path + (long long) newPaths);
   }

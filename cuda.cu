@@ -29,9 +29,9 @@ void breed(Chromosome *oldGen, Chromosome *newGen, double *ratios, curandState *
   int parentA = getRandomParent(ratios, fakeState);
   int parentB = getRandomParent(ratios, fakeState);
 
-  printf("Breeding child: %d. Parents: %d, %d\n", thid, parentA, parentB);
+  //printf("Breeding child: %d. Parents: %d, %d\n", thid, parentA, parentB);
   cross(oldGen + parentA, oldGen + parentB, newGen + thid);
-  printf("Breeding completed\n");
+  //printf("Breeding completed\n");
 
 }
 
@@ -167,12 +167,12 @@ void cross(Chromosome *a, Chromosome *b, Chromosome *child)
     P = res[resSize - 1];
 
   }
-  printf("THID %d CP %p %p\n", global_thid, child, child->path); 
+  //printf("THID %d CP %p %p\n", global_thid, child, child->path); 
   // Przepisuje wynik tam gdzie trzeba
   for (int i = 0; i < resSize; ++i)
   {
     child->path[i] = res[i];
-    printf("%d\n", res[i]);
+    //printf("%d\n", res[i]);
   }
   child->pathLength = calculatePathLength(child, child->path);
 
