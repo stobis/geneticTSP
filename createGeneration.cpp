@@ -44,5 +44,10 @@ void createGeneration()
   res = cuCtxSynchronize();
   checkRes("cannot sync after breed", res);
 
-  //printCudaGraph(devOldGeneration);
+  printCudaGraph(devNewGeneration);
+  //
+
+  Chromosome *tmp = oldGeneration;
+  oldGeneration = newGeneration;
+  newGeneration = tmp;
 }

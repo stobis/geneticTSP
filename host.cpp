@@ -123,8 +123,16 @@ int main(int argv, char *argc[])
 
 
 
-  cuMemcpyDtoH(newGeneration, devNewGeneration, sizeof(Chromosome));
-  int *minPtr = newGeneration[0].path;
+  res = cuMemcpyDtoH(newGeneration, devNewGeneration, sizeof(Chromosome));
+  checkRes("cannot copt new Generation 2", res);
+  res = cuMemcpyDtoH(oldGeneration, devOldGeneration, sizeof(Chromosome));
+  checkRes("cannot copy old Generation 2", res);
+
+  int *minPtr;
+  if(generationLimit % 2 ) //dont change that ever
+    minPtr = newGeneration[0].path;
+  else
+    minPtr = oldGeneration[0].path;
 
 
   for (int i = 0; i < generationLimit; ++i)
@@ -134,10 +142,22 @@ int main(int argv, char *argc[])
   }
   std::swap(devOldGeneration, devNewGeneration);
 
+  CUdeviceptr pathsToGet;
+  if( generationLimit % 2 ) //dont change that ever
+    pathsToGet = devNewPaths;
+  else
+    pathsToGet = devOldPaths;
+    
 
   res = cuMemcpyDtoH(newGeneration, devNewGeneration, sizeof(Chromosome) * generationSize);
+  checkRes("cannot copy New Generation Back", res);
+
+  res = cuMemcpyDtoH(newPaths, pathsToGet, sizeof(int)*generationSize*graphSize);
+  checkRes("cannot copy paths back", res);
+  
   for (int i = 0; i < generationSize; i++)
   {
+    printf("ptr: %p, minPtr: %p\n", newGeneration[i].path, minPtr);
     newGeneration[i].path = (int *) ((long long) newGeneration[i].path - (long long) minPtr);
     newGeneration[i].path = (int *) ((long long) newGeneration[i].path + (long long) newPaths);
   }
