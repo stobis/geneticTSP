@@ -18,6 +18,7 @@ void createGeneration()
   for (int i = 0; i < generationSize; i++)
   {
     ratios[i] = 1.0 / (oldGeneration[i].pathLength * oldGeneration[i].pathLength);
+    ratios[i] *=ratios[i];
   }
 
 

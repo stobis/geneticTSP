@@ -64,10 +64,10 @@ int main(int argv, char *argc[])
   oldGeneration = new Chromosome[generationSize];
 
   graph = new Point[graphSize];
-  int a, b;
+  double a, b;
   for (int i = 0; i < graphSize; ++i)
   {
-    scanf("%d%d", &a, &b);
+    scanf("%lf %lf", &a, &b);
     graph[i].x = a;
     graph[i].y = b;
   }
