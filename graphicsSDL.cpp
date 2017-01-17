@@ -20,6 +20,7 @@ void initializeSDL()
     {
         printf("Cannot init SDL\n"); 
     }
+
 }
 
 void destroySDL()
@@ -56,5 +57,8 @@ void drawChromosomeSDL(Chromosome *chromosome)
   SDL_RenderDrawLine(renderer, 321, 200, 300, 240);
   SDL_RenderDrawLine(renderer, 300, 240, 340, 240);
   SDL_RenderDrawLine(renderer, 340, 240, 320, 200);
+  SDL_RenderDrawLine(renderer, 300, 213, 340, 213);
+  SDL_RenderDrawLine(renderer, 300, 213, 320, 253);
+  SDL_RenderDrawLine(renderer, 340, 213, 320, 253);
   SDL_RenderPresent(renderer);
 }
