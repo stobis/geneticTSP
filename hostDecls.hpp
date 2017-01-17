@@ -7,6 +7,10 @@ void createGeneration();
 void checkRes(char *message, CUresult res);
 void printCudaGraph(CUdeviceptr ptr);
 
+void initializeSDL();
+void destroySDL();
+void drawChromosomeSDL(Chromosome *chromosome);
+
 extern Point *graph;
 
 extern int graphSize, generationSize, generationLimit;

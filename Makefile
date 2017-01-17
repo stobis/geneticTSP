@@ -25,7 +25,7 @@ CFLAGS += $(COMMONFLAGS)
 
 
 CUDA_OBJS = cuda.ptx
-OBJS = host.cpp.o createGeneration.cpp.o printCudaGraph.cpp.o
+OBJS = host.cpp.o createGeneration.cpp.o printCudaGraph.cpp.o graphicsSDL.cpp.o
 TARGET = solution.x
 LINKLINE = $(LINK) -o $(TARGET) $(OBJS) $(LIB_CUDA) -L sdlLib/lib/ -l SDL2 -Wl,-rpath=sdlLib/lib
 
