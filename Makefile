@@ -27,7 +27,8 @@ CFLAGS += $(COMMONFLAGS)
 CUDA_OBJS = cuda.ptx
 OBJS = host.cpp.o createGeneration.cpp.o printCudaGraph.cpp.o
 TARGET = solution.x
-LINKLINE = $(LINK) -o $(TARGET) $(OBJS) $(LIB_CUDA)
+LINKLINE = $(LINK) -o $(TARGET) $(OBJS) $(LIB_CUDA) -L sdlLib/lib/ -l SDL2 -Wl,-rpath=sdlLib/lib
+
 
 .SUFFIXES:	.c	.cpp	.cu	.o	
 %.c.o: %.c
@@ -37,7 +38,7 @@ LINKLINE = $(LINK) -o $(TARGET) $(OBJS) $(LIB_CUDA)
 	$(NVCC) $(NVCCFLAGS) $< -o $@
 
 %.cpp.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@ -I sdlLib/include/ -L sdlLib/lib/ -l SDL2 -Wl,-rpath=sdlLib/lib
 
 $(TARGET): prepare $(OBJS) $(CUDA_OBJS)
 	$(LINKLINE)
