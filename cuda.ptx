@@ -5150,7 +5150,7 @@ BB1_213:
 	bra.uni 	BB1_216;
 
 BB1_202:
-	setp.geu.f64	%p111, %fd1, 0d3FA999999999999A;
+	setp.geu.f64	%p111, %fd1, 0d3FD3333333333333;
 	@%p111 bra 	BB1_209;
 
 	shr.u32 	%r1726, %r2144, 2;

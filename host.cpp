@@ -165,7 +165,7 @@ int main(int argv, char *argc[])
   pathsToGet[0] = devNewPaths;
  // else
   pathsToGet[1] = devOldPaths;
-  int whichGeneration = 100;
+  int whichGeneration = 10;
   int * theBestPath = new int[graphSize];
   for (int i = 0; i < generationLimit; ++i)
   {

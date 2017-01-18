@@ -85,7 +85,7 @@ void mutate(Chromosome *tab, curandState *curandStates)
 
   }
 
-  if( getRand(0, 1, fakeState) < 0.05 )
+  if( getRand(0, 1, fakeState) < 0.3 )
   {
     int a = getRand(0, 1, fakeState) * graphSize; 
     int b = getRand(0, 1, fakeState) * graphSize;
