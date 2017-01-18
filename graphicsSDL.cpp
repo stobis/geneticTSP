@@ -1,13 +1,13 @@
 #include "SDL2/SDL.h"
 #include "decls.hpp"
-
+#include "structDefs.cpp"
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
 
-void initializeSDL()
+void initializeSDL(int windowLength, int windowHeight)
 {
     if (SDL_Init(SDL_INIT_VIDEO) == 0) {
-         if (SDL_CreateWindowAndRenderer(640, 480, 0, &window, &renderer) == 0)
+         if (SDL_CreateWindowAndRenderer(windowLength, windowHeight, 0, &window, &renderer) == 0)
          {
             //ALL OK
          }
@@ -48,17 +48,30 @@ void destroySDL()
   SDL_Quit();
 }
 
-void drawChromosomeSDL(Chromosome *chromosome)
+void drawChromosomeSDL(Chromosome chromosome, Point* drawGraph, int graphSize)
 {
-  SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+  SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
   SDL_RenderClear(renderer);
 
-  SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
-  SDL_RenderDrawLine(renderer, 321, 200, 300, 240);
-  SDL_RenderDrawLine(renderer, 300, 240, 340, 240);
-  SDL_RenderDrawLine(renderer, 340, 240, 320, 200);
-  SDL_RenderDrawLine(renderer, 300, 213, 340, 213);
-  SDL_RenderDrawLine(renderer, 300, 213, 320, 253);
-  SDL_RenderDrawLine(renderer, 340, 213, 320, 253);
+   
+  SDL_SetRenderDrawColor(renderer, 0, 0, 255, SDL_ALPHA_OPAQUE);
+  int p1, p2;
+  p1 = chromosome.path[0];
+  for(int i = 1; i < graphSize; ++i){
+    p2 = chromosome.path[i];
+    SDL_RenderDrawLine(renderer, drawGraph[p1].x, drawGraph[p1].y, drawGraph[p2].x, drawGraph[p2].y);
+    p1 = p2;
+  }
+  SDL_RenderDrawLine(renderer, drawGraph[p1].x, drawGraph[p1].y, drawGraph[0].x, drawGraph[0].y);
+
+  SDL_Point points[graphSize];
+  for(int i = 0; i < graphSize; ++i){
+    points[i].x = drawGraph[i].x;
+    points[i].y = drawGraph[i].y;
+  }
+
+  SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+  SDL_RenderDrawPoints(renderer, points, graphSize);
+ 
   SDL_RenderPresent(renderer);
 }

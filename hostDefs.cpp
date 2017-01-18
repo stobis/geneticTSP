@@ -5,9 +5,11 @@ void createGeneration(CUdeviceptr oldGen, CUdeviceptr newGen);
 void checkRes(char *message, CUresult res);
 
 Point *graph;
+Point *drawGraph;
 
 int graphSize, generationSize, generationLimit;
 int *oldPaths, *newPaths;
+int windowHeight, windowLength;
 double mutationRatio;
 Chromosome *oldGeneration;
 Chromosome *newGeneration;

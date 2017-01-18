@@ -7,14 +7,16 @@ void createGeneration();
 void checkRes(char *message, CUresult res);
 void printCudaGraph(CUdeviceptr ptr);
 
-void initializeSDL();
+void initializeSDL(int windowLength, int windowHeight);
 void destroySDL();
-void drawChromosomeSDL(Chromosome *chromosome);
+void drawChromosomeSDL(Chromosome chromosome, Point * drawGraph, int graphSize);
 
 extern Point *graph;
+extern Point *drawGraph; 
 
 extern int graphSize, generationSize, generationLimit;
 extern int *oldPaths, *newPaths;
+extern int windowHeight, windowLength;
 extern double mutationRatio;
 extern Chromosome *oldGeneration;
 extern Chromosome *newGeneration;

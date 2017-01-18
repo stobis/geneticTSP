@@ -48,11 +48,11 @@ void createGeneration()
 
   //printCudaGraph(devNewGeneration);
   //
-
+/*
   Chromosome *tmp = oldGeneration;
   oldGeneration = newGeneration;
   newGeneration = tmp;
-
+*/
   delete[] ratios;
   delete[] ratiosSums;
 }

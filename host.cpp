@@ -5,18 +5,23 @@
 #include <ctime>
 #include <algorithm>
 #include <cstdlib>
+#include <climits>
+#include <unistd.h>
 
 #include "hostDecls.hpp"
 #include "hostDefs.cpp"
 #include "structDefs.cpp"
 
 void createFirstGeneration(int *paths);
+void createDrawGraph(double minX, double minY, double maxX, double maxY, int windowHeight, int windowLength);
 
 bool operator<(const Chromosome a, const Chromosome b);
 
 int main(int argv, char *argc[])
 {
-  initializeSDL();
+  int windowLength = 640;
+  int windowHeight = 480;
+  initializeSDL(windowLength, windowHeight);
   
   srand(time(NULL));
   //Inicjalizajca drivera - za nim uruchomimy jaka kolwiek funkcje z Driver API
@@ -66,13 +71,23 @@ int main(int argv, char *argc[])
   oldGeneration = new Chromosome[generationSize];
 
   graph = new Point[graphSize];
+  drawGraph = new Point[graphSize];
   double a, b;
+  double minX, minY, maxX, maxY;
+  minX = minY = INT_MAX;
+  maxX = maxY = INT_MIN;
   for (int i = 0; i < graphSize; ++i)
   {
     scanf("%lf %lf", &a, &b);
-    graph[i].x = a;
-    graph[i].y = b;
+    graph[i].x = drawGraph[i].x = a;
+    graph[i].y = drawGraph[i].y = b;
+    minX = std::min(minX, a);
+    minY = std::min(minY, b);
+    maxX = std::max(maxX, a);
+    maxY = std::max(maxY, b);
   }
+
+  createDrawGraph(minX, minY, maxX, maxY, windowHeight, windowLength);
 
   res = cuMemAlloc(&devGraph, sizeof(Point) * graphSize);
   checkRes("cannot allocate memory devGraph", res);
@@ -135,26 +150,45 @@ int main(int argv, char *argc[])
   checkRes("cannoc sync after init kernel", res);
 
 
-
-
   res = cuMemcpyDtoH(newGeneration, devNewGeneration, sizeof(Chromosome));
   checkRes("cannot copt new Generation 2", res);
   res = cuMemcpyDtoH(oldGeneration, devOldGeneration, sizeof(Chromosome));
   checkRes("cannot copy old Generation 2", res);
 
-  int *minPtr;
-  if(generationLimit % 2 ) //dont change that ever
-    minPtr = newGeneration[0].path;
-  else
-    minPtr = oldGeneration[0].path;
+  int *minPtr[2];
+  //if(generationLimit % 2 ) //dont change that ever
+  minPtr[0] = newGeneration[0].path;
+  minPtr[1] = oldGeneration[0].path;
 
-
+  CUdeviceptr pathsToGet[2];
+ // if( generationLimit % 2 == 0 ) //dont change that ever
+  pathsToGet[0] = devNewPaths;
+ // else
+  pathsToGet[1] = devOldPaths;
+  int whichGeneration = 100;
+  int * theBestPath = new int[graphSize];
   for (int i = 0; i < generationLimit; ++i)
   {
     createGeneration();
+    if(i % whichGeneration == 0){
+      res = cuMemcpyDtoH(newGeneration, devNewGeneration, sizeof(Chromosome) * generationSize);
+      checkRes("cannot copy New Generation Back", res);
+      res = cuMemcpyDtoH(newPaths, pathsToGet[i%2], sizeof(int)*generationSize*graphSize);
+      checkRes("cannot copy paths back", res);
+      for (int j = 0; j < generationSize; j++)
+      {
+        newGeneration[j].path = (int *) ((long long) newGeneration[j].path - (long long) minPtr[i%2]);
+        newGeneration[j].path = (int *) ((long long) newGeneration[j].path + (long long) newPaths);
+      }
+
+      std::sort(newGeneration, newGeneration+generationSize);
+      
+      drawChromosomeSDL(newGeneration[0], drawGraph, graphSize);
+    }
     std::swap(devOldGeneration, devNewGeneration);
+    std::swap(oldGeneration, newGeneration);
   }
-  std::swap(devOldGeneration, devNewGeneration);
+ /* std::swap(devOldGeneration, devNewGeneration);
 
   CUdeviceptr pathsToGet;
   if( generationLimit % 2 ) //dont change that ever
@@ -178,7 +212,7 @@ int main(int argv, char *argc[])
   std::sort(newGeneration, newGeneration+generationSize);
   std::reverse(newGeneration, newGeneration+generationSize);
 
-  drawChromosomeSDL(newGeneration);
+  drawChromosomeSDL(newGeneration[0], drawGraph, graphSize);
   
   for (int i = 0; i < generationSize; i++)
   {
@@ -188,7 +222,7 @@ int main(int argv, char *argc[])
       printf("%d ", newGeneration[i].path[j]);
     }
     printf("\n");
-  }
+  }*/
 
   cuCtxDestroy(cuContext);
 
@@ -216,12 +250,30 @@ void createFirstGeneration(int *paths)
       paths[i * graphSize + j] = j;
     }
     std::random_shuffle(paths + graphSize * i + 1, paths + graphSize * (i + 1));
-
   }
-
 }
 
 bool operator<(const Chromosome a, const Chromosome b)
 {
   return a.pathLength < b.pathLength;
+}
+
+void createDrawGraph(double minX, double minY, double maxX, double maxY, int windowHeight, int windowLength)
+{
+  maxX = maxX - minX;
+  for(int i = 0; i < graphSize; ++i){
+    drawGraph[i].x = (drawGraph[i].x - minX);
+    if(maxX > 0) 
+      drawGraph[i].x *= ((static_cast<double>(windowLength - 100)/(maxX)));
+  }
+  maxY = maxY - minY;
+  for(int i = 0; i < graphSize; ++i){
+    drawGraph[i].y =  (drawGraph[i].y - minY);
+    if(maxY > 0) 
+      drawGraph[i].y *= ((static_cast<double>(windowHeight - 100)/(maxY)));
+  }
+  for(int i = 0; i < graphSize; ++i){
+    drawGraph[i].x += 50;
+    drawGraph[i].y += 50;
+  }
 }
