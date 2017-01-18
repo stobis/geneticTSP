@@ -57,6 +57,16 @@ double getRand(double p, double q, curandState *state)
   return curand_uniform(state) * (q - p) + p;
 }
 
+__device__
+void swapChromosomes(int thid, Chromosome *tab, int a, int b)
+{
+    int tmp = tab[thid].path[a];
+    tab[thid].path[a] = tab[thid].path[b];
+    tab[thid].path[b] = tmp;
+    
+    tab[thid].pathLength = calculatePathLength(tab+thid, tab[thid].path);
+}
+
 __global__
 void mutate(Chromosome *tab, curandState *curandStates)
 {
@@ -71,11 +81,28 @@ void mutate(Chromosome *tab, curandState *curandStates)
     int a = getRand(0, 1, fakeState) * graphSize;
     int b = getRand(0, 1, fakeState) * graphSize;
     
-    int tmp = tab[thid].path[a];
-    tab[thid].path[a] = tab[thid].path[b];
-    tab[thid].path[b] = tmp;
+    swapChromosomes(thid, tab, a, b);
 
-    tab[thid].pathLength = calculatePathLength( tab+thid, tab[thid].path );
+  }
+
+  if( getRand(0, 1, fakeState) < 0.05 )
+  {
+    int a = getRand(0, 1, fakeState) * graphSize; 
+    int b = getRand(0, 1, fakeState) * graphSize;
+
+    if(a>b)
+    {
+        int tmp = a;
+        a=b;
+        b = tmp;
+    }
+
+    for(int i = a; i<=b; i++)
+    {
+        int tmp1 = getRand(a, b, fakeState); 
+        
+        swapChromosomes(thid, tab, i, tmp1);
+    }
   }
 
   delete fakeState;

@@ -53,6 +53,7 @@ void drawChromosomeSDL(Chromosome chromosome, Point* drawGraph, int graphSize)
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
   SDL_RenderClear(renderer);
 
+  printf("Length: %lf\n", chromosome.pathLength);
    
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
   int p1, p2;

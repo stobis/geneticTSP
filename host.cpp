@@ -226,6 +226,8 @@ int main(int argv, char *argc[])
 
   cuCtxDestroy(cuContext);
 
+  printf("All is done\n");
+
   destroySDL();
   return 0;
 }
