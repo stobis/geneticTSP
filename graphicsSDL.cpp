@@ -54,7 +54,7 @@ void drawChromosomeSDL(Chromosome chromosome, Point* drawGraph, int graphSize)
   SDL_RenderClear(renderer);
 
    
-  SDL_SetRenderDrawColor(renderer, 0, 0, 255, SDL_ALPHA_OPAQUE);
+  SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
   int p1, p2;
   p1 = chromosome.path[0];
   for(int i = 1; i < graphSize; ++i){
@@ -64,14 +64,15 @@ void drawChromosomeSDL(Chromosome chromosome, Point* drawGraph, int graphSize)
   }
   SDL_RenderDrawLine(renderer, drawGraph[p1].x, drawGraph[p1].y, drawGraph[0].x, drawGraph[0].y);
 
-  SDL_Point points[graphSize];
+  SDL_Rect rect;
+  SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
   for(int i = 0; i < graphSize; ++i){
-    points[i].x = drawGraph[i].x;
-    points[i].y = drawGraph[i].y;
+    rect.x = drawGraph[i].x - 3;
+    rect.y = drawGraph[i].y - 3;
+    rect.h = rect.w = 6;
+    SDL_RenderFillRect(renderer, &rect);
   }
 
-  SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-  SDL_RenderDrawPoints(renderer, points, graphSize);
- 
+
   SDL_RenderPresent(renderer);
 }
