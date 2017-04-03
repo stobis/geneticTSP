@@ -1,4 +1,3 @@
 sdlLib/* linguist-vendored
-createGeneration.* linguist-language=CUDA
-host*.* linguist-language=CUDA
-printCudaGraph.* linguist-language=CUDA
+createGeneration.cpp linguist-language=CUDA
+host.cpp linguist-language=CUDA
