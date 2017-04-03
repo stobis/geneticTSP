@@ -2,3 +2,4 @@ createGeneration.* linguist-language=CUDA
 host*.* linguist-language=CUDA
 printCudaGraph.* linguist-language=CUDA
 
+sdlLib/* linguist-vendored=false
